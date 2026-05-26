@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>LAN CHAT</title>
+<link rel="stylesheet" href="static/style.css">
+
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+}
+
+.hero{
+    text-align:center;
+}
+
+.logo{
+
+    font-size:60px;
+    margin-bottom:20px;
+
+    animation: glow 2s infinite alternate;
+
+}
+
+.title{
+
+    font-size:45px;
+    margin:0;
+}
+
+.subtitle{
+
+    color:#94a3b8;
+    margin-top:10px;
+    margin-bottom:30px;
+
+}
+
+.startBtn{
+
+    padding:15px;
+    width:250px;
+
+    border:none;
+
+    border-radius:15px;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+    color:white;
+
+    background:#06b6d4;
+
+    box-shadow:0 0 20px #06b6d4;
+
+}
+
+.startBtn:hover{
+
+    transform:scale(1.05);
+
+}
+
+.bg{
+
+    position:absolute;
+
+    width:100%;
+    height:100%;
+
+    z-index:-1;
+
+    background:
+    radial-gradient(
+    circle,
+    rgba(56,189,248,.2),
+    transparent
+    );
+
+}
+
+@keyframes glow{
+
+from{
+
+text-shadow:
+0 0 10px cyan;
+
+}
+
+to{
+
+text-shadow:
+0 0 40px cyan;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="hero">
+
+<div class="logo">
+⚡
+</div>
+
+<h1 class="title">
+LAN CHAT
+</h1>
+
+<p class="subtitle">
+Chat local • Cyber • Real-time
+</p>
+
+<button
+class="startBtn"
+onclick="go()">
+
+Intră în aplicație
+
+</button>
+
+</div>
+
+<script>
+
+function go(){
+
+window.location.href=
+"/login.html"
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+<div class="chat-container">
+
+    <h1>LOGIN</h1>
+
+    <input type="text" id="username" placeholder="Username">
+
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">
+        Login
+    </button>
+
+    <button onclick="register()">
+        Sign Up
+    </button>
+
+</div>
+
+<script>
+
+async function register(){
+
+    const username =
+        document.getElementById("username").value
+
+    const password =
+        document.getElementById("password").value
+
+    const response = await fetch("/register",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            username,
+            password
+        })
+    })
+
+    if(response.status == 200){
+
+        alert("Account creat!")
+    }
+    else{
+        alert("User exista!")
+    }
+}
+
+async function login(){
+
+    const username =
+        document.getElementById("username").value
+
+    const password =
+        document.getElementById("password").value
+
+    const response = await fetch("/login",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            username,
+            password
+        })
+    })
+
+    if(response.status == 200){
+
+        localStorage.username = username
+
+        window.location.href = "/index.html"
+    }
+    else{
+        alert("Login gresit")
+    }
+}
+
+</script>
+
+</body>
+</html>
