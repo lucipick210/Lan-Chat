@@ -9,14 +9,19 @@ MESSAGES_FILE = "messages.json"
 USERS_FILE = "users.json"
 
 
-def init_file(file_path):
-    if not os.path.exists(file_path):
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump([], f)
+def init_file(path, default):
+    if not os.path.exists(path):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(default, f, ensure_ascii=False, indent=4)
 
 
-init_file(MESSAGES_FILE)
-init_file(USERS_FILE)
+init_file(MESSAGES_FILE, {
+    "general": [],
+    "gaming": [],
+    "random": []
+})
+
+init_file(USERS_FILE, [])
 
 
 class ChatServer(BaseHTTPRequestHandler):
@@ -28,11 +33,11 @@ class ChatServer(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data).encode())
 
-
+    # ---------------- GET ----------------
     def do_GET(self):
 
         if self.path == "/":
-            self.path = "/welcome.html"
+            self.path = "/index.html"
 
         if self.path == "/messages":
             with open(MESSAGES_FILE, "r", encoding="utf-8") as f:
@@ -42,75 +47,90 @@ class ChatServer(BaseHTTPRequestHandler):
         try:
             path = self.path.lstrip("/")
 
-            if path.endswith(".html"):
-                file_type = "text/html"
-            elif path.endswith(".css"):
-                file_type = "text/css"
-            elif path.endswith(".js"):
-                file_type = "application/javascript"
-            else:
-                file_type = "text/plain"
+            if path == "":
+                path = "index.html"
 
-            with open(path, "rb") as file:
-                self.send_response(200)
-                self.send_header("Content-type", file_type)
+            if not os.path.exists(path):
+                self.send_response(404)
                 self.end_headers()
-                self.wfile.write(file.read())
+                self.wfile.write(b"404")
+                return
 
-        except:
-            self.send_response(404)
+            if path.endswith(".html"):
+                ctype = "text/html"
+            elif path.endswith(".css"):
+                ctype = "text/css"
+            elif path.endswith(".js"):
+                ctype = "application/javascript"
+            else:
+                ctype = "text/plain"
+
+            with open(path, "rb") as f:
+                self.send_response(200)
+                self.send_header("Content-type", ctype)
+                self.end_headers()
+                self.wfile.write(f.read())
+
+        except Exception as e:
+            print("GET ERROR:", e)
+            self.send_response(500)
             self.end_headers()
-            self.wfile.write(b"404 Not Found")
 
-
+    # ---------------- POST ----------------
     def do_POST(self):
 
-        content_length = int(self.headers["Content-Length"])
-        body = self.rfile.read(content_length)
-
         try:
-            data = json.loads(body)
+            length = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(length)
+            data = json.loads(raw.decode("utf-8"))
         except:
             self.send_response(400)
             self.end_headers()
-            self.wfile.write(b"Invalid JSON")
             return
 
-
-        # ---------------- SEND MESSAGE ----------------
+        # =========================
+        # 🔥 SEND MESSAGE
+        # =========================
         if self.path == "/send":
+
+            room = data.get("room", "general")
 
             with open(MESSAGES_FILE, "r", encoding="utf-8") as f:
                 messages = json.load(f)
 
-            if "username" in data and "message" in data:
-                messages.append(data)
+            if room not in messages:
+                messages[room] = []
 
-                with open(MESSAGES_FILE, "w", encoding="utf-8") as f:
-                    json.dump(messages, f, ensure_ascii=False, indent=4)
+            messages[room].append(data)
 
-                return self.send_response(200), self.end_headers()
+            with open(MESSAGES_FILE, "w", encoding="utf-8") as f:
+                json.dump(messages, f, ensure_ascii=False, indent=4)
 
-            self.send_response(400)
+            self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"Invalid message format")
             return
 
-
-        # ---------------- REGISTER ----------------
+        # =========================
+        # 🔥 REGISTER
+        # =========================
         elif self.path == "/register":
+
+            username = data.get("username", "").strip()
+            password = data.get("password", "").strip()
 
             with open(USERS_FILE, "r", encoding="utf-8") as f:
                 users = json.load(f)
 
-            for user in users:
-                if user["username"] == data.get("username"):
+            for u in users:
+                if u["username"].strip() == username:
                     self.send_response(400)
                     self.end_headers()
-                    self.wfile.write(b"User exists")
                     return
 
-            users.append(data)
+            users.append({
+                "username": username,
+                "password": password
+            })
 
             with open(USERS_FILE, "w", encoding="utf-8") as f:
                 json.dump(users, f, ensure_ascii=False, indent=4)
@@ -119,29 +139,33 @@ class ChatServer(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-
-        # ---------------- LOGIN ----------------
+        # =========================
+        # 🔥 LOGIN
+        # =========================
         elif self.path == "/login":
+
+            username = data.get("username", "").strip()
+            password = data.get("password", "").strip()
 
             with open(USERS_FILE, "r", encoding="utf-8") as f:
                 users = json.load(f)
 
-            for user in users:
-                if (
-                    user["username"] == data.get("username")
-                    and user["password"] == data.get("password")
-                ):
+            for u in users:
+                if u["username"].strip() == username and u["password"].strip() == password:
                     self.send_response(200)
                     self.end_headers()
                     return
 
             self.send_response(401)
             self.end_headers()
-            self.wfile.write(b"Wrong login")
             return
 
+        # =========================
+        # ❌ UNKNOWN ROUTE
+        # =========================
+        self.send_response(404)
+        self.end_headers()
 
 server = HTTPServer((HOST, PORT), ChatServer)
-
-print(f"Server pornit pe http://localhost:{PORT}")
+print(f"Server running on http://localhost:{PORT}")
 server.serve_forever()

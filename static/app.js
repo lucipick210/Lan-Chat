@@ -1,131 +1,119 @@
-let lastCount = 0;
+let currentRoom = "general";
+let lastCount = {};
 
-async function loadMessages(){
+function logout() {
+    localStorage.removeItem("username");
+    window.location.href = "/login.html";
+}
 
-    const response =
-    await fetch("/messages")
+function getMessagesDiv() {
+    return document.getElementById("messages");
+}
 
-    const messages =
-    await response.json()
+async function loadMessages() {
+    const messagesDiv = getMessagesDiv();
+    if (!messagesDiv) return;
 
-    const messagesDiv =
-    document.getElementById("messages")
+    const response = await fetch("/messages");
+    const data = await response.json();
 
-    if(messages.length === lastCount){
-        return
+    // 🔥 IMPORTANT: messages per room
+    const messages = data[currentRoom] || [];
+
+    if (!(currentRoom in lastCount)) {
+        lastCount[currentRoom] = -1;
     }
+
+    if (messages.length === lastCount[currentRoom]) return;
 
     const wasNearBottom =
         messagesDiv.scrollHeight -
         messagesDiv.scrollTop -
-        messagesDiv.clientHeight < 50
+        messagesDiv.clientHeight < 80;
 
-    messagesDiv.innerHTML = ""
+    let html = "";
 
-    messages.forEach(msg=>{
+    for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
 
-        messagesDiv.innerHTML += `
-        <div class="message">
-            <b>${msg.username}</b>
-
-            <span class="time">
-                ${msg.time || ""}
-            </span>
-
-            <br>
-
-            ${msg.message}
-        </div>
-        `
-    })
-
-    if(wasNearBottom){
-
-        messagesDiv.scrollTop =
-        messagesDiv.scrollHeight
-
+        html += `
+            <div class="message">
+                <b>${msg.username}</b>
+                <span class="time">${msg.time || ""}</span>
+                <br>
+                ${msg.message}
+            </div>
+        `;
     }
 
-    lastCount = messages.length
+    messagesDiv.innerHTML = html;
+
+    if (wasNearBottom) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    lastCount[currentRoom] = messages.length;
 }
 
-async function sendMessage(){
+function sendMessage() {
+    const usernameEl = document.getElementById("username");
+    const messageEl = document.getElementById("message");
 
-    const username =
-    document.getElementById("username").value
+    const username = usernameEl.value;
+    const message = messageEl.value;
 
-    const message =
-    document.getElementById("message").value
+    if (message.trim() === "") return;
 
-    if(message.trim()==""){
-        return
-    }
-
-    const time =
-    new Date().toLocaleTimeString()
-
-    await fetch("/send",{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body:JSON.stringify({
-
+    fetch("/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
             username,
             message,
-            time
-
+            time: new Date().toLocaleTimeString(),
+            room: currentRoom
         })
+    });
 
-    })
-
-    document.getElementById("message").value=""
-
-    loadMessages()
+    messageEl.value = "";
+    loadMessages();
 }
 
-document
-.getElementById("message")
-.addEventListener(
-"keypress",
+function changeRoom(room, element) {
+    currentRoom = room;
 
-function(event){
+    document.querySelectorAll(".room")
+        .forEach(r => r.classList.remove("active"));
 
-    if(event.key==="Enter"){
-        sendMessage()
+    if (element) element.classList.add("active");
+
+    const messagesDiv = getMessagesDiv();
+    if (messagesDiv) messagesDiv.innerHTML = "";
+    document.getElementById("roomTitle").innerText = "#" + room;
+    // 🔥 IMPORTANT FIX:
+    lastCount[currentRoom] = -1;
+
+    loadMessages();
+}
+
+// enter send
+function initChat() {
+    const input = document.getElementById("message");
+
+    if (input) {
+        input.addEventListener("keypress", e => {
+            if (e.key === "Enter") sendMessage();
+        });
     }
 
-})
+    // username persist
+    const usernameEl = document.getElementById("username");
+    if (usernameEl && localStorage.username) {
+        usernameEl.value = localStorage.username;
+    }
 
-if(localStorage.username){
-
-document.getElementById(
-"username"
-).value =
-localStorage.username
-
+    setInterval(loadMessages, 1000);
+    loadMessages();
 }
 
-setInterval(loadMessages,1000)
-
-loadMessages()
-
-document.getElementById(
-"userLabel"
-).innerText =
-localStorage.username
-
-
-function logout(){
-
-    localStorage.removeItem(
-    "username"
-    )
-
-    window.location.href=
-    "/login.html"
-
-}
+window.addEventListener("DOMContentLoaded", initChat);

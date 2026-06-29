@@ -6,57 +6,49 @@
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">
-            ⚡ LAN CHAT
-        </div>
-        <div class="nav-right">
-            <span id="userLabel">
-                Utilizator
-            </span>
 
-            <button onclick="logout()">
-                Logout
-            </button>
-        </div>
+<nav class="navbar">
+    <div class="logo">⚡ LAN CHAT</div>
 
-    </nav>
-    <div class="layout">
+    <div class="nav-right">
+        <span id="userLabel">Utilizator</span>
+
+        <button onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <h3>Camere</h3>
-            <div class="room active">
-                # general
-            </div>
-            <div class="room">
-                # gaming
-            </div>
-            <div class="room">
-                # random
-            </div>
+
+        <div class="room active" onclick="changeRoom('general', this)"># general</div>
+        <div class="room" onclick="changeRoom('gaming', this)"># gaming</div>
+        <div class="room" onclick="changeRoom('random', this)"># random</div>
     </div>
+
+    <!-- CHAT -->
     <div class="chat-container main">
-        <h1>LAN CHAT</h1>
+
+        <h1 id="roomTitle"># general</h1>
+
         <div id="messages"></div>
-        <input
-        type="text"
-        id="username"
-        disabled>
-        <input
-        type="text"
-        id="message"
-        placeholder="Mesaj">
-        <button onclick="sendMessage()">
-            Trimite
-        </button>
+
+        <input type="text" id="username" disabled>
+
+        <input type="text" id="message" placeholder="Mesaj">
+
+        <button onclick="sendMessage()">Trimite</button>
+
     </div>
+
 </div>
 
 <script>
-
-if(!localStorage.username){
-
-    window.location.href ="/login.html"}
-
+if (!localStorage.username) {
+    window.location.href = "/welcome.html";
+}
 </script>
 
 <script src="static/app.js"></script>
