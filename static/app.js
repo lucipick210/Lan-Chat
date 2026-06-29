@@ -17,7 +17,7 @@ async function loadMessages() {
     const response = await fetch("/messages");
     const data = await response.json();
 
-    // 🔥 IMPORTANT: messages per room
+
     const messages = data[currentRoom] || [];
 
     if (!(currentRoom in lastCount)) {
@@ -90,7 +90,7 @@ function changeRoom(room, element) {
     const messagesDiv = getMessagesDiv();
     if (messagesDiv) messagesDiv.innerHTML = "";
     document.getElementById("roomTitle").innerText = "#" + room;
-    // 🔥 IMPORTANT FIX:
+    
     lastCount[currentRoom] = -1;
 
     loadMessages();
