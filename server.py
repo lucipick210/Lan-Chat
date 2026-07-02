@@ -20,7 +20,6 @@ init_file(MESSAGES_FILE, {
     "gaming": [],
     "random": []
 })
-
 init_file(USERS_FILE, [])
 
 
