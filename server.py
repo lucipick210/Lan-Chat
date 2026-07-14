@@ -32,7 +32,7 @@ class ChatServer(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data).encode())
 
-    # ---------------- GET ----------------
+ 
     def do_GET(self):
 
         if self.path == "/":
@@ -75,7 +75,7 @@ class ChatServer(BaseHTTPRequestHandler):
             self.send_response(500)
             self.end_headers()
 
-    # ---------------- POST ----------------
+    
     def do_POST(self):
 
         try:
@@ -87,9 +87,7 @@ class ChatServer(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # =========================
-        # 🔥 SEND MESSAGE
-        # =========================
+
         if self.path == "/send":
 
             room = data.get("room", "general")
@@ -109,9 +107,6 @@ class ChatServer(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # =========================
-        # 🔥 REGISTER
-        # =========================
         elif self.path == "/register":
 
             username = data.get("username", "").strip()
@@ -138,9 +133,6 @@ class ChatServer(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # =========================
-        # 🔥 LOGIN
-        # =========================
         elif self.path == "/login":
 
             username = data.get("username", "").strip()
@@ -159,9 +151,7 @@ class ChatServer(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # =========================
-        # ❌ UNKNOWN ROUTE
-        # =========================
+
         self.send_response(404)
         self.end_headers()
 
